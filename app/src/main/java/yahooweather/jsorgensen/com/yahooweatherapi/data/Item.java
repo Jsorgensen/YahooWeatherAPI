@@ -7,7 +7,11 @@ import org.json.JSONObject;
  */
 public class Item implements JSONPopulator{
 
+    private String title;
+    private Double latitude, longitude;
+    private String link, pubDate;
     private Condition condition;
+    private Forecast forecast;
 
     @Override
     public void populate(JSONObject data) {

@@ -7,10 +7,17 @@ import org.json.JSONObject;
  */
 public class Units  implements JSONPopulator{
 
-    private String temperature;
+    private String distance, pressure, speed, temperature;
 
     @Override
     public void populate(JSONObject data){
+
+        distance = data.optString("distance");
+
+        pressure = data.optString("pressure");
+
+        speed = data.optString("speed");
+
         temperature = data.optString("temperature");
     }
 
