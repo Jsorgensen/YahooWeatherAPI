@@ -9,17 +9,18 @@ import org.json.JSONObject;
 
 public class Forecast implements JSONPopulator {
 
-    private Day[] days;
+    private ForecastDay[] days;
+    public int length;
 
     @Override
     public void populate(JSONObject data) {
         try{
             JSONArray jsonArray = new JSONArray();
-            days = new Day[jsonArray.length()];
+            days = new ForecastDay[jsonArray.length()];
 
             for(int i=0; i<jsonArray.length(); i++){
                 JSONObject j = jsonArray.getJSONObject(i);
-                Day d = new Day();
+                ForecastDay d = new ForecastDay();
                 d.setCode(j.optInt("code"));
                 d.setDate(j.optString("date"));
                 d.setDay(j.optString("day"));
@@ -28,71 +29,18 @@ public class Forecast implements JSONPopulator {
                 d.setText(j.optString("text"));
                 days[i] = d;
             }
+
+            length = days.length;
         }catch(Exception e){
 
         }
     }
 
-    public Day[] getDays() {
+    public ForecastDay[] getDays() {
         return days;
     }
 
-    public Day getDay(int index){
+    public ForecastDay getDay(int index){
         return days[index];
-    }
-
-    public class Day{
-        private int code;
-        private String date, day;
-        private int high, low;
-        private String text;
-
-        public int getCode() {
-            return code;
-        }
-
-        public void setCode(int code) {
-            this.code = code;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(String date) {
-            this.date = date;
-        }
-
-        public String getDay() {
-            return day;
-        }
-
-        public void setDay(String day) {
-            this.day = day;
-        }
-
-        public int getHigh() {
-            return high;
-        }
-
-        public void setHigh(int high) {
-            this.high = high;
-        }
-
-        public int getLow() {
-            return low;
-        }
-
-        public void setLow(int low) {
-            this.low = low;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
     }
 }
