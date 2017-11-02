@@ -7,9 +7,10 @@
     <color name="textColor">#000000</color>
     <color name="temperature_title">#002ae6</color>
     <color name="edit_text">#d9f4ff</color>
-    <color name="button">#96c2ed</color>
+    <color name="button">#b9b9b9</color>
     <color name="sub_layout">#ecdcb0</color>
     <color name="sub_border">#8f0000</color>
     <color name="sub_titles">#0060bf</color>
     <color name="forecast_group">#d980ffc2</color>
+    <color name="forecast_day">#b23944e4</color>
 </resources>

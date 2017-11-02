@@ -14,7 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
@@ -59,8 +61,15 @@ public class WeatherFragment extends Fragment implements View.OnClickListener{
             width /= 2;
 
         baseview = activity.gScrollView(null);
+        activity.setLayoutParams(baseview, activity.getBaseView(), width, height);
+        baseview.setFocusable(true);
+        baseview.setFocusableInTouchMode(true);
 
         foundation_view = activity.gVerticalLayout(baseview);
+        activity.setLayoutParams(foundation_view, baseview, width, height);
+        foundation_view.setGravity(Gravity.CENTER);
+        int padding = 15;
+        foundation_view.setPadding(padding, padding*4, padding, padding);
 
         weather_group = gVerticalLayout(foundation_view);
         activity.setLayoutParams(weather_group, foundation_view, LinearLayout.LayoutParams.MATCH_PARENT, null);
@@ -114,10 +123,13 @@ public class WeatherFragment extends Fragment implements View.OnClickListener{
         activity.setMargins(switch_location, 15, null, null, null);
 
         view_forecast = gButton("View nth Day Forecast", foundation_view, ButtonReference.ForecastView);
-        int padding = 30;
+        padding = 30;
         view_forecast.setPadding(padding, padding, padding, padding);
         int margins = 30;
         activity.setMargins(view_forecast, margins, margins, margins, margins);
+
+
+        baseview.requestFocus();
     }
 
     @Nullable

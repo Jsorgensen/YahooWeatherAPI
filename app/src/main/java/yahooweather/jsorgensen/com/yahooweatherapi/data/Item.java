@@ -29,7 +29,7 @@ public class Item implements JSONPopulator{
         condition.populate(data.optJSONObject("condition"));
 
         forecast = new Forecast();
-        forecast.populate(data.optJSONObject("forecast"));
+        forecast.populate(data.optJSONArray("forecast"));
     }
 
     public Condition getCondition() {

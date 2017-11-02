@@ -5,8 +5,10 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
@@ -50,6 +52,8 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         weatherColor = ResourcesCompat.getColor(getResources(), R.color.weatherColor, null);
 
         baseview = gHorizontalLayout(null);
+        ((LinearLayout)baseview).setGravity(Gravity.CENTER_VERTICAL);
+        baseview.setBackground(getImage("hobble_creek"));
         setContentView(baseview);
 
         FragmentManager fm1 = getFragmentManager();
@@ -89,8 +93,8 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         weatherFragment.setPressure("Pressure: " + channel.getAtmosphere().getPressure() + channel.getUnits().getPressure());
         weatherFragment.setVisibity("Visibility: " + channel.getAtmosphere().getVisibility() + channel.getUnits().getDistance());
 
-        weatherFragment.setLatitude(channel.getItem().getLatitude() + "°");
-        weatherFragment.setLongitude(channel.getItem().getLongitude() + "°");
+        weatherFragment.setLatitude("Lat: " + channel.getItem().getLatitude() + "°");
+        weatherFragment.setLongitude("Long: " + channel.getItem().getLongitude() + "°");
 
         weatherFragment.setWindChill("Chill: " + channel.getWind().getChill() + "°" + channel.getUnits().getTemperature());
         weatherFragment.setWindSpeed("Speed: " + channel.getWind().getSpeed() + channel.getUnits().getSpeed());
@@ -105,6 +109,7 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         weatherFragment.setViewForecastDays(channel.getItem().getForecast().length + "");
 
 
+        forecastFragment.setUnit("°" + channel.getUnits().getTemperature());
         forecastFragment.setForecast(channel.getItem().getForecast());
     }
 
@@ -130,69 +135,31 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         return textSize;
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        updateOrientation();
-    }
-
-    public void updateOrientation(){
-        Display display = getWindowManager().getDefaultDisplay();
-        int width = display.getWidth()
-                , height = display.getHeight();
-
-        int threshold = 1080;
-        int orientation = getResources().getConfiguration().orientation;
-        if(orientation == Configuration.ORIENTATION_PORTRAIT){
-            if(switchToForecast) {
-                if(forecastFragment.getBaseview().getParent() == null)
-                    baseview.addView(forecastFragment.getBaseview());
-                if(weatherFragment.getBaseview().getParent() != null)
-                    baseview.removeView(weatherFragment.getBaseview());
-            }else{
-                if(forecastFragment.getBaseview().getParent() != null)
-                    baseview.removeView(forecastFragment.getBaseview());
-                if(weatherFragment.getBaseview().getParent() == null)
-                    baseview.addView(weatherFragment.getBaseview());
-            }
-        }else if(orientation == Configuration.ORIENTATION_LANDSCAPE){
-            if(forecastFragment.getBaseview().getParent() == null)
-                baseview.addView(forecastFragment.getBaseview());
-            if(weatherFragment.getBaseview().getParent() == null)
-                baseview.addView(weatherFragment.getBaseview(), 0);
-
-            /*
-            weatherFragment.getBaseview().setLayoutParams(
-                    new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                            , LinearLayout.LayoutParams.WRAP_CONTENT
-                            , 1.0f
-                    )
-            );
-            forecastFragment.getBaseview().setLayoutParams(
-                    new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                            , LinearLayout.LayoutParams.WRAP_CONTENT
-                            , 1.0f
-                    )
-            );
-            */
-        }
-    }
-
     public void switchToForecast(){
-        baseview.removeView(weatherFragment.getBaseview());
-
         if(forecastFragment.getBaseview().getParent() == null)
             baseview.addView(forecastFragment.getBaseview());
+
+        baseview.removeView(weatherFragment.getBaseview());
+        baseview.addView(weatherFragment.getBaseview());
     }
 
     public void switchToWeather(){
-        baseview.removeView(forecastFragment.getBaseview());
-
         if(weatherFragment.getBaseview().getParent() == null)
             baseview.addView(weatherFragment.getBaseview());
+
+        baseview.removeView(forecastFragment.getBaseview());
+        baseview.addView(forecastFragment.getBaseview());
+    }
+
+    public BitmapDrawable getImage(String filename){
+        int i = getResources().getIdentifier("@drawable/"+filename, null, getPackageName());
+        Drawable d = getResources().getDrawable(i);
+        Bitmap b = ((BitmapDrawable)d).getBitmap();
+        BitmapDrawable bd = new BitmapDrawable(b);
+        bd.setTargetDensity(b.getDensity());
+        bd.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+
+        return bd;
     }
 
     protected LinearLayout gHorizontalLayout(ViewGroup parent){

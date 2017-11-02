@@ -2,16 +2,20 @@ package yahooweather.jsorgensen.com.yahooweatherapi;
 
 import android.app.Fragment;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
@@ -31,6 +35,7 @@ public class ForecastFragment extends Fragment implements View.OnClickListener{
     private Button back_top, back_bottom;
 
     private Forecast forecast;
+    private String unit;
 
     private int width, height;
     private enum ButtonReference{WeatherView};
@@ -49,7 +54,12 @@ public class ForecastFragment extends Fragment implements View.OnClickListener{
             width /= 2;
 
         baseview = activity.gScrollView(null);
+        activity.setLayoutParams(baseview, activity.getBaseView(), width, height);
         foundation_view = activity.gVerticalLayout(baseview);
+        activity.setLayoutParams(foundation_view, baseview, width, height);
+        foundation_view.setGravity(Gravity.CENTER);
+        int padding = 45;
+        foundation_view.setPadding(padding, padding, padding, padding);
 
         back_top = gButton("View Weather Forecast", foundation_view, ButtonReference.WeatherView);
 
@@ -89,42 +99,52 @@ public class ForecastFragment extends Fragment implements View.OnClickListener{
         }
     }
 
+    public void setUnit(String unit){
+        this.unit = unit;
+    }
+
     private LinearLayout gDayGroup(ForecastDay day){
-        LinearLayout dayLayout = gVerticalLayout(forecast_layout);
+        LinearLayout dayLayout = gSubVerticalLayout(forecast_layout);
 
-        LinearLayout date = gHorizontalLayout(dayLayout);
+        TextView t = gTextView(day.getDay() + ",  " + day.getDate(), dayLayout);
+        t.setTextColor(ResourcesCompat.getColor(getResources(), R.color.sub_titles, null));
 
-        gTextView(day.getDay(), date);
-        gTextView(day.getDate(), date);
-
-        LinearLayout temps = gHorizontalLayout(dayLayout);
-
-        gTextView("High: " + day.getHigh(), temps);
-        gTextView("Low: " + day.getLow(), temps);
+        gTextView("High: " + day.getHigh() + unit + ",  Low: " + day.getLow() + unit, dayLayout);
 
         gTextView(day.getText(), dayLayout);
 
         return dayLayout;
     }
 
-    public LinearLayout gHorizontalLayout(ViewGroup parent){
-        LinearLayout l = activity.gHorizontalLayout(parent);
-        int background_color = ResourcesCompat.getColor(getResources(), R.color.forecast_group, null)
+    public LinearLayout gVerticalLayout(ViewGroup parent){
+        LinearLayout l = activity.gVerticalLayout(parent);
+        int padding = 30;
+        l.setPadding(padding, padding, padding, padding);
+        int margins = 30;
+        activity.setMargins(l, margins, margins, margins, margins);
+
+        return l;
+    }
+
+    public LinearLayout gSubVerticalLayout(ViewGroup parent){
+        LinearLayout l = activity.gVerticalLayout(parent);
+        int padding = 30;
+        l.setPadding(padding, padding, padding, padding);
+        int margins = 30;
+        activity.setMargins(l, margins, margins, margins, margins);
+        int background_color = ResourcesCompat.getColor(getResources(), R.color.sub_layout, null)
                 , border_color = ResourcesCompat.getColor(getResources(), R.color.sub_border, null);
         activity.setBorder(l, background_color, 5, border_color, 30);
 
         return l;
     }
 
-    public LinearLayout gVerticalLayout(ViewGroup parent){
-        LinearLayout l = gHorizontalLayout(parent);
-        l.setOrientation(LinearLayout.VERTICAL);
-
-        return l;
-    }
-
     public TextView gTextView(String text, ViewGroup parent){
         TextView t = activity.gTextView(text, parent);
+        int background_color = ResourcesCompat.getColor(getResources(), R.color.sub_layout, null);
+        activity.setBorder(t, background_color, 0, Color.TRANSPARENT, 30);
+        int padding = 30;
+        t.setPadding(padding, padding, padding, padding);
 
         return t;
     }
@@ -132,6 +152,13 @@ public class ForecastFragment extends Fragment implements View.OnClickListener{
     public Button gButton(String hint, ViewGroup parent, ButtonReference reference){
         Button b = activity.gButton(hint, parent);
         setOnClickListener(b, reference);
+        int background_color = ResourcesCompat.getColor(getResources(), R.color.button, null)
+                , border_color = ResourcesCompat.getColor(getResources(), R.color.sub_border, null);
+        activity.setBorder(b, background_color, 0, border_color, 30);
+        int padding = 30;
+        b.setPadding(padding, padding, padding, padding);
+        int margins = 30;
+        activity.setMargins(b, margins, margins, margins, margins);
 
         return b;
     }

@@ -7,19 +7,18 @@ import org.json.JSONObject;
  * Created by MECH on 10/31/2017.
  */
 
-public class Forecast implements JSONPopulator {
+public class Forecast implements JSONArrayPopulator {
 
     private ForecastDay[] days;
     public int length;
 
     @Override
-    public void populate(JSONObject data) {
+    public void populate(JSONArray data) {
         try{
-            JSONArray jsonArray = new JSONArray();
-            days = new ForecastDay[jsonArray.length()];
+            days = new ForecastDay[data.length()];
 
-            for(int i=0; i<jsonArray.length(); i++){
-                JSONObject j = jsonArray.getJSONObject(i);
+            for(int i=0; i<data.length(); i++){
+                JSONObject j = data.getJSONObject(i);
                 ForecastDay d = new ForecastDay();
                 d.setCode(j.optInt("code"));
                 d.setDate(j.optString("date"));
