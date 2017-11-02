@@ -5,7 +5,9 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.TypedValue;
@@ -14,6 +16,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -41,10 +45,24 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        baseview = gHorizontalLayout(null);
-        textSize = 120;
+        textSize = 60;
         switchToForecast = false;
         weatherColor = ResourcesCompat.getColor(getResources(), R.color.weatherColor, null);
+
+        baseview = gHorizontalLayout(null);
+        setContentView(baseview);
+
+        FragmentManager fm1 = getFragmentManager();
+        FragmentTransaction ft1 = fm1.beginTransaction();
+        weatherFragment = new WeatherFragment();
+        ft1.add(baseview.getId(), weatherFragment);
+        ft1.commit();
+
+        FragmentManager fm2 = getFragmentManager();
+        FragmentTransaction ft2 = fm2.beginTransaction();
+        forecastFragment = new ForecastFragment();
+        ft2.add(baseview.getId(), forecastFragment);
+        ft2.commit();
 
         service = new YahooWeatherService(this);
         dialog = new ProgressDialog(this);
@@ -52,35 +70,64 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         dialog.show();
 
         service.refreshWeather("Springville, UT");
+    }
 
-        weatherFragment = new WeatherFragment();
-        forecastFragment = new ForecastFragment();
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.show(weatherFragment);
-        fragmentTransaction.show(forecastFragment);
-        fragmentTransaction.commit();
+    private void layout(){
 
-        baseview.addView(weatherFragment.getBaseview());
     }
 
     @Override
     public void serviceSuccess(Channel channel) {
         dialog.hide();
 
-        String temperature_text = channel.getItem().getCondition().getTemperature() + channel.getUnits().getTemperature().toString();
-        String condition_text = channel.getItem().getCondition().getDescription().toString();
-        String location_text = service.getLocation().toString();
+        weatherFragment.setTemperatureText(channel.getItem().getCondition().getTemperature() + "°" + channel.getUnits().getTemperature().toString());
+        weatherFragment.setConditionText(channel.getItem().getCondition().getDescription().toString());
+        weatherFragment.setLocationText(service.getLocation().toString());
+        weatherFragment.setTimeText(channel.getItem().getCondition().getDate());
 
-        weatherFragment.setTemperatureText(temperature_text);
-        weatherFragment.setConditionText(condition_text);
-        weatherFragment.setLocationText(location_text);
+        weatherFragment.setHumidity("Humidity: " + channel.getAtmosphere().getHumidity() + "%");
+        weatherFragment.setPressure("Pressure: " + channel.getAtmosphere().getPressure() + channel.getUnits().getPressure());
+        weatherFragment.setVisibity("Visibility: " + channel.getAtmosphere().getVisibility() + channel.getUnits().getDistance());
+
+        weatherFragment.setLatitude(channel.getItem().getLatitude() + "°");
+        weatherFragment.setLongitude(channel.getItem().getLongitude() + "°");
+
+        weatherFragment.setWindChill("Chill: " + channel.getWind().getChill() + "°" + channel.getUnits().getTemperature());
+        weatherFragment.setWindSpeed("Speed: " + channel.getWind().getSpeed() + channel.getUnits().getSpeed());
+
+        weatherFragment.setSunrise("Sunrise: " + channel.getAstronomy().getSunrise());
+        weatherFragment.setSunset("Sunset: " + channel.getAstronomy().getSunset());
+
+        weatherFragment.setCity(channel.getLocation().getCity());
+        weatherFragment.setState(channel.getLocation().getRegion());
+
+        int days = channel.getItem().getForecast().length;
+        weatherFragment.setViewForecastDays(channel.getItem().getForecast().length + "");
+
+
+        forecastFragment.setForecast(channel.getItem().getForecast());
     }
 
     @Override
     public void serviceFailure(Exception exception) {
         dialog.hide();
         Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
+    }
+
+    public void refreshWeather(String location){
+        service.refreshWeather(location);
+    }
+
+    public ViewGroup getBaseView(){
+        return baseview;
+    }
+
+    public void addView(View view){
+        baseview.addView(view);
+    }
+
+    public int getTextSize() {
+        return textSize;
     }
 
     @Override
@@ -96,7 +143,7 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
                 , height = display.getHeight();
 
         int threshold = 1080;
-        int orientation = display.getOrientation();
+        int orientation = getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_PORTRAIT){
             if(switchToForecast) {
                 if(forecastFragment.getBaseview().getParent() == null)
@@ -109,22 +156,6 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
                 if(weatherFragment.getBaseview().getParent() == null)
                     baseview.addView(weatherFragment.getBaseview());
             }
-            /*
-            weatherFragment.getBaseview().setLayoutParams(
-                    new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                            , LinearLayout.LayoutParams.WRAP_CONTENT
-                            , 1.0f
-                    )
-            );
-            forecastFragment.getBaseview().setLayoutParams(
-                    new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                            , LinearLayout.LayoutParams.WRAP_CONTENT
-                            , 1.0f
-                    )
-            );
-            */
         }else if(orientation == Configuration.ORIENTATION_LANDSCAPE){
             if(forecastFragment.getBaseview().getParent() == null)
                 baseview.addView(forecastFragment.getBaseview());
@@ -148,6 +179,20 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
             );
             */
         }
+    }
+
+    public void switchToForecast(){
+        baseview.removeView(weatherFragment.getBaseview());
+
+        if(forecastFragment.getBaseview().getParent() == null)
+            baseview.addView(forecastFragment.getBaseview());
+    }
+
+    public void switchToWeather(){
+        baseview.removeView(forecastFragment.getBaseview());
+
+        if(weatherFragment.getBaseview().getParent() == null)
+            baseview.addView(weatherFragment.getBaseview());
     }
 
     protected LinearLayout gHorizontalLayout(ViewGroup parent){
@@ -178,11 +223,28 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         return s;
     }
 
+    protected EditText gEditText(String hint, ViewGroup parent){
+        EditText e = new EditText(this);
+        e.setId(e.generateViewId());
+        setLayoutParams(e, parent);
+        e.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.edit_text, null));
+        e.setPadding(0, 0, 0, 0);
+        e.setIncludeFontPadding(false);
+        setMargins(e, 0, 0, 0, 0);
+        e.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+        if(parent != null)
+            parent.addView(e);
+
+        return e;
+    }
+
     protected TextView gTextView(String text, ViewGroup parent){
         TextView t = new TextView(this);
         t.setId(t.generateViewId());
         setLayoutParams(t, parent);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         t.setText(text);
+        t.setTextColor(ResourcesCompat.getColor(getResources(), R.color.textColor, null));
         t.setBackgroundColor(weatherColor);
         if(parent != null)
             parent.addView(t);
@@ -194,6 +256,7 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         Button b = new Button(this);
         b.setId(b.generateViewId());
         setLayoutParams(b, parent);
+        b.setPadding(15, 0, 15, 0);
         b.setMinHeight(0);
         b.setMinHeight(0);
         b.setMinimumHeight(0);
@@ -201,6 +264,10 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
         b.setIncludeFontPadding(false);
         b.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
         b.setText(text);
+        b.setTransformationMethod(null);
+        b.setBackgroundColor(ResourcesCompat.getColor(getResources(), R.color.button, null));
+        if(parent != null)
+            parent.addView(b);
 
         return b;
     }
@@ -241,5 +308,65 @@ public class MainActivity extends Activity implements WeatherServiceCallback {
                 );
                 break;
         }
+    }
+
+    protected void setMargins(View view, Integer left, Integer top, Integer right, Integer bottom){
+        ViewGroup parent = (ViewGroup)view.getParent();
+        if(parent == null)
+            return;
+
+        int l=0, t=0, r=0, b=0;
+        if(left != null)
+            l = left;
+        if(top != null)
+            t = top;
+        if(right != null)
+            r = right;
+        if(bottom != null)
+            b = bottom;
+
+        String parent_class = parent.getClass().getSimpleName();
+        switch(parent_class){
+            case("LinearLayout"):
+                LinearLayout.LayoutParams lllp = (LinearLayout.LayoutParams)view.getLayoutParams();
+
+                if(left == null)
+                    l = lllp.leftMargin;
+                if(top == null)
+                    t = lllp.topMargin;
+                if(right == null)
+                    r = lllp.rightMargin;
+                if(bottom == null)
+                    b = lllp.bottomMargin;
+
+                lllp.setMargins(l, t, r, b);
+                break;
+
+            case("FrameLayout"):
+            case("HorizontalScrollView"):
+            case("ScrollView"):
+                FrameLayout.LayoutParams fllp = (FrameLayout.LayoutParams)view.getLayoutParams();
+
+                if(left == null)
+                    l = fllp.leftMargin;
+                if(top == null)
+                    t = fllp.topMargin;
+                if(right == null)
+                    r = fllp.rightMargin;
+                if(bottom == null)
+                    b = fllp.bottomMargin;
+
+                fllp.setMargins(l, t, r, b);
+                break;
+        }
+    }
+
+    public void setBorder(View view, int background_color, int border_size, int border_color, int border_radius){
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(background_color);
+        g.setStroke(border_size, border_color);
+        g.setGradientRadius(border_radius);
+        g.setCornerRadius(border_radius);
+        view.setBackground(g);
     }
 }

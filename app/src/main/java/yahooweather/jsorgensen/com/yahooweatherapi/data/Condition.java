@@ -8,17 +8,22 @@ import org.json.JSONObject;
 public class Condition implements JSONPopulator{
 
     private int code, temperature;
-    private String description;
+    private String date, description;
 
     @Override
     public void populate(JSONObject data) {
         code = data.optInt("code");
+        date = data.optString("date");
         temperature = data.optInt("temp");
         description = data.optString("text");
     }
 
     public int getCode() {
         return code;
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public int getTemperature() {

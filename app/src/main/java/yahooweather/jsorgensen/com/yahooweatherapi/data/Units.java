@@ -24,4 +24,16 @@ public class Units  implements JSONPopulator{
     public String getTemperature() {
         return temperature;
     }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public String getPressure() {
+        return pressure;
+    }
+
+    public String getSpeed() {
+        return speed;
+    }
 }
